@@ -12,8 +12,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { Button } from '@/components/ui/button';
-import { LayoutDashboard, CalendarDays, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Users, LogOut, Settings } from 'lucide-react';
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -21,7 +20,7 @@ export function AdminSidebar() {
   const menuItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/events', label: 'Events', icon: CalendarDays },
-    { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -34,7 +33,7 @@ export function AdminSidebar() {
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                   <a>
                     <item.icon />
                     <span>{item.label}</span>

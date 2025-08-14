@@ -1,7 +1,6 @@
-import { UserListClient } from '@/components/admin/user-list-client';
-import { MOCK_USERS } from '@/lib/mock-data';
+import { redirect } from 'next/navigation';
 
 export default function UsersPage() {
-  const users = MOCK_USERS;
-  return <UserListClient users={users} />;
+  // Redirect to the new settings page which now contains user management
+  redirect('/admin/settings');
 }

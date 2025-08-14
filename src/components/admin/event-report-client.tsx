@@ -1,10 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import type { EventWithStats } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface EventReportClientProps {
@@ -22,10 +19,6 @@ export function EventReportClient({ event }: EventReportClientProps) {
             Detailed analytics for: <span className="font-semibold text-primary">{event.name}</span>
           </p>
         </div>
-        <Button>
-          <Download className="mr-2 h-4 w-4" />
-          Export Report
-        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -37,15 +37,10 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
           scansByHour: updatedScansByHour,
         };
       });
-
-      toast({
-        title: 'Dashboard Updated',
-        description: 'Live statistics have been refreshed.',
-      });
     }, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
-  }, [toast]);
+  }, []);
 
   const userPerformanceData = event.scansByUser.sort((a, b) => b.scans - a.scans);
   const hourlyTrendData = event.scansByHour;

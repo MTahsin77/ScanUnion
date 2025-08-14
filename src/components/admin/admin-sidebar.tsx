@@ -32,27 +32,23 @@ export function AdminSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
-                  <a>
+              <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} variant="ghost" className="w-full justify-start">
+                  <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
-              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-         <Link href="/login" legacyBehavior passHref>
-            <SidebarMenuButton asChild tooltip="Logout">
-              <a>
-                <LogOut />
-                <span>Logout</span>
-              </a>
-            </SidebarMenuButton>
-          </Link>
+         <SidebarMenuButton asChild tooltip="Logout" variant="ghost" className="w-full justify-start">
+            <Link href="/login">
+              <LogOut />
+              <span>Logout</span>
+            </Link>
+          </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
   );

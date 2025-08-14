@@ -3,8 +3,9 @@
 import type { EventWithStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, ScanLine, Clock, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Users, ScanLine, Clock, Zap, FileText, Settings, CalendarPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 interface DashboardClientProps {
@@ -13,8 +14,7 @@ interface DashboardClientProps {
 
 export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
   const [event, setEvent] = useState(initialEvent);
-  const { toast } = useToast();
-
+  
   useEffect(() => {
     // Simulate real-time updates
     const interval = setInterval(() => {
@@ -47,11 +47,33 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Live Dashboard</h1>
-        <p className="text-muted-foreground">
-          Showing real-time analytics for: <span className="font-semibold text-primary">{event.name}</span>
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight font-headline">Live Dashboard</h1>
+          <p className="text-muted-foreground">
+            Showing real-time analytics for: <span className="font-semibold text-primary">{event.name}</span>
+          </p>
+        </div>
+        <div className="flex gap-2">
+           <Button variant="outline" asChild>
+            <Link href={`/admin/events/${event.id}/report`}>
+              <FileText className="mr-2 h-4 w-4" />
+              View Report
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/events">
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Manage Events
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

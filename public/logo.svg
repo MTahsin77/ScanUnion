@@ -1,0 +1,8 @@
+<svg width="200" height="50" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .heavy { font: bold 30px 'PT Sans', sans-serif; fill: #333; }
+    .light { font: 20px 'PT Sans', sans-serif; fill: #6699CC; }
+  </style>
+  <text x="5" y="35" class="heavy">Scan</text>
+  <text x="80" y="35" class="light">Union</text>
+</svg>

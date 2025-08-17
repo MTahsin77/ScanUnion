@@ -1,9 +1,27 @@
-import { DashboardClient } from '@/components/admin/dashboard-client';
-import { MOCK_EVENT_WITH_STATS_1 } from '@/lib/mock-data';
+import { EventSelectionClient } from '@/components/admin/event-selection-client';
 
-export default function AdminDashboardPage() {
-  // In a real app, you would fetch the current ongoing event
-  const ongoingEvent = MOCK_EVENT_WITH_STATS_1;
+import { prisma } from '@/lib/database';
 
-  return <DashboardClient event={ongoingEvent} />;
+async function getEvents() {
+  try {
+    const events = await prisma.event.findMany({
+      include: {
+        eventUsers: {
+          include: {
+            user: true
+          }
+        }
+      },
+      orderBy: { date: 'desc' }
+    });
+    return events;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
+}
+
+export default async function AdminDashboardPage() {
+  const events = await getEvents();
+  return <EventSelectionClient events={events} />;
 }

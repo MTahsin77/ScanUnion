@@ -3,16 +3,18 @@
 import type { EventWithStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, ScanLine, Clock, Zap, FileText, Settings, CalendarPlus } from 'lucide-react';
+import { Users, ScanLine, Clock, Zap, FileText, Settings, CalendarPlus, ArrowLeft, Activity, CheckCircle, XCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import * as XLSX from 'xlsx';
 
 interface DashboardClientProps {
   event: EventWithStats;
+  onBack?: () => void;
 }
 
-export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
+export function DashboardClient({ event: initialEvent, onBack }: DashboardClientProps) {
   const [event, setEvent] = useState(initialEvent);
   
   useEffect(() => {
@@ -45,21 +47,73 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
   const userPerformanceData = event.scansByUser.sort((a, b) => b.scans - a.scans);
   const hourlyTrendData = event.scansByHour;
 
+  const handleExportReport = () => {
+    // Create workbook with multiple sheets
+    const workbook = XLSX.utils.book_new();
+
+    // Event Summary Sheet
+    const eventSummary = [
+      ['Event Report'],
+      ['Event Name', event.name],
+      ['Date', new Date(event.date).toDateString()],
+      ['Total Scans', event.totalScans],
+      ['Peak Hour', event.peakHour.hour],
+      ['Peak Hour Scans', event.peakHour.scans],
+      ['Active Scanners', event.scansByUser.length],
+      ['Generated On', new Date().toLocaleString()],
+    ];
+    const eventSummarySheet = XLSX.utils.aoa_to_sheet(eventSummary);
+    XLSX.utils.book_append_sheet(workbook, eventSummarySheet, 'Event Summary');
+
+    // Scanner Performance Sheet
+    const scannerData = [
+      ['Scanner Name', 'Total Scans'],
+      ...userPerformanceData.map(user => [user.userName, user.scans])
+    ];
+    const scannerSheet = XLSX.utils.aoa_to_sheet(scannerData);
+    XLSX.utils.book_append_sheet(workbook, scannerSheet, 'Scanner Performance');
+
+    // Hourly Breakdown Sheet
+    const hourlyData = [
+      ['Hour', 'Scans'],
+      ...hourlyTrendData.map(hour => [hour.hour, hour.scans])
+    ];
+    const hourlySheet = XLSX.utils.aoa_to_sheet(hourlyData);
+    XLSX.utils.book_append_sheet(workbook, hourlySheet, 'Hourly Breakdown');
+
+    // Detailed Scan Logs Sheet
+    const logData = [
+      ['Timestamp', 'Scanner', 'Student ID', 'Status'],
+      ...event.logs.map(log => [
+        new Date(log.timestamp).toLocaleString(),
+        event.scansByUser.find(u => u.userId === log.scannerId)?.userName || 'Unknown',
+        log.studentId,
+        log.status
+      ])
+    ];
+    const logSheet = XLSX.utils.aoa_to_sheet(logData);
+    XLSX.utils.book_append_sheet(workbook, logSheet, 'Detailed Scan Logs');
+
+    // Generate and download file
+    const fileName = `${event.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight font-headline">Live Dashboard</h1>
-          <p className="text-muted-foreground">
-            Showing real-time analytics for: <span className="font-semibold text-primary">{event.name}</span>
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight font-headline">Live Dashboard</h1>
+            <p className="text-muted-foreground">
+              Showing real-time analytics for: <span className="font-semibold text-primary">{event.name}</span>
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
-           <Button variant="outline" asChild>
-            <Link href={`/admin/events/${event.id}/report`}>
-              <FileText className="mr-2 h-4 w-4" />
-              View Report
-            </Link>
+        <div className="flex gap-2 mt-1">
+           <Button variant="outline" onClick={() => handleExportReport()}>
+            <FileText className="mr-2 h-4 w-4" />
+            Export Report
           </Button>
           <Button variant="outline" asChild>
             <Link href="/admin/events">
@@ -73,6 +127,12 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
               Settings
             </Link>
           </Button>
+          {onBack && (
+            <Button variant="outline" onClick={onBack} size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Events
+            </Button>
+          )}
         </div>
       </div>
 
@@ -119,8 +179,8 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Hourly Scan Trends</CardTitle>
             <CardDescription>Number of scans per hour.</CardDescription>
@@ -129,8 +189,19 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={hourlyTrendData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="hour" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis 
+                  dataKey="hour" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tick={{ fill: 'hsl(var(--foreground))' }}
+                />
+                <YAxis 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tick={{ fill: 'hsl(var(--foreground))' }}
+                />
                 <Tooltip
                   contentStyle={{
                     background: 'hsl(var(--card))',
@@ -152,8 +223,22 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
              <ResponsiveContainer width="100%" height={300}>
               <BarChart data={userPerformanceData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis dataKey="userName" type="category" width={80} fontSize={12} tickLine={false} axisLine={false}/>
+                <XAxis 
+                  type="number" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tick={{ fill: '#000000' }}
+                />
+                <YAxis 
+                  dataKey="userName" 
+                  type="category" 
+                  width={80} 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tick={{ fill: '#000000' }}
+                />
                 <Tooltip
                   cursor={{ fill: 'hsl(var(--muted))' }}
                   contentStyle={{
@@ -162,12 +247,52 @@ export function DashboardClient({ event: initialEvent }: DashboardClientProps) {
                     borderRadius: 'var(--radius)',
                   }}
                 />
-                <Bar dataKey="scans" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="scans" fill="#9CA3AF" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Recent Scanner Logs
+          </CardTitle>
+          <CardDescription>Live feed of scanning activity.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {event.logs.slice().reverse().map((log) => {
+              const scanner = event.scansByUser.find(u => u.userId === log.scannerId);
+              const StatusIcon = log.status === 'success' ? CheckCircle : XCircle;
+              const statusColor = log.status === 'success' ? 'text-green-600' : 'text-red-600';
+              
+              return (
+                <div key={log.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                  <div className="flex items-center gap-3">
+                    <StatusIcon className={`h-4 w-4 ${statusColor}`} />
+                    <div>
+                      <p className="text-sm font-medium">Student ID: {log.studentId}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Scanned by {scanner?.userName || 'Unknown'} • {new Date(log.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    log.status === 'success' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {log.status === 'success' ? 'Success' : 'Duplicate'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

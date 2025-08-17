@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String   @db.VarChar(255)
+  email         String?  @unique @db.VarChar(255)
+  pin           String   @unique @db.VarChar(10)
+  enabled       Boolean  @default(true)
+  role          Role     @default(USER)
+  isFirstLogin  Boolean  @default(false)
+  tempPassword  String?  @db.VarChar(255)
+  passwordHash  String?  @db.VarChar(255)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  scanLogs      ScanLog[]
+  eventUsers    EventUser[]
+
+  @@map("users")
+}
+
+model Event {
+  id              String      @id @default(cuid())
+  name            String      @db.VarChar(255)
+  description     String?     @db.Text
+  date            DateTime
+  timeRange       String      @db.VarChar(100)
+  location        String?     @db.VarChar(255)
+  scanningEnabled Boolean     @default(true)
+  status          EventStatus @default(UPCOMING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  scanLogs        ScanLog[]
+  eventUsers      EventUser[]
+
+  @@map("events")
+}
+
+model EventUser {
+  id       String  @id @default(cuid())
+  eventId  String
+  userId   String
+  location String? @db.VarChar(255)
+
+  // Relations
+  event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_users")
+}
+
+model ScanLog {
+  id        String     @id @default(cuid())
+  eventId   String
+  scannerId String
+  studentId String     @db.VarChar(50)
+  status    ScanStatus @default(SUCCESS)
+  timestamp DateTime   @default(now())
+
+  // Relations
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanner   User       @relation(fields: [scannerId], references: [id], onDelete: Cascade)
+
+  @@map("scan_logs")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+enum ScanStatus {
+  SUCCESS
+  DUPLICATE
+  ERROR
+}

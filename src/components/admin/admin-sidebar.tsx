@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { LayoutDashboard, CalendarDays, Users, LogOut, Settings } from 'lucide-react';
@@ -24,15 +25,15 @@ export function AdminSidebar() {
   ];
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <Logo />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="pt-12">
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} variant="ghost" className="w-full justify-start">
+              <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
@@ -43,13 +44,14 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-         <SidebarMenuButton asChild tooltip="Logout" variant="ghost" className="w-full justify-start">
+         <SidebarMenuButton asChild tooltip="Logout">
             <Link href="/login">
               <LogOut />
               <span>Logout</span>
             </Link>
           </SidebarMenuButton>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import type { Event, User } from '@/lib/types';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, LogOut, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface EventTilesClientProps {
@@ -14,30 +14,58 @@ interface EventTilesClientProps {
 
 export function EventTilesClient({ events }: EventTilesClientProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>(events);
 
   useEffect(() => {
-    // Retrieve user from localStorage
+    // Get user from local storage
     const storedUser = localStorage.getItem('scanunion_user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const currentUser = JSON.parse(storedUser);
+      setUser(currentUser);
+      
+      // Filter events based on user assignment
+      const userEvents = events.filter(event => 
+        event.assignedUsers && event.assignedUsers.includes(currentUser.id)
+      );
+      setFilteredEvents(userEvents);
     }
-  }, []);
+  }, [events]);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem('scanunion_user');
+    localStorage.removeItem('scanunion_admin');
+    
+    // Redirect to login page
+    window.location.href = '/login';
+  };
 
   return (
     <div className="container mx-auto max-w-5xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Select an Event</h1>
-        <p className="text-muted-foreground">
-          Welcome, <span className="font-semibold text-primary">{user?.name || 'Scanner'}</span>! Choose an event to start scanning.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight font-headline">Select an Event</h1>
+          <p className="text-muted-foreground">
+            Welcome, <span className="font-semibold text-primary">{user?.name || 'Scanner'}</span>! Choose an event to start scanning.
+          </p>
+        </div>
+        <Button variant="outline" onClick={handleLogout} className="text-destructive hover:text-destructive">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </div>
 
-      {events.length > 0 ? (
+      {filteredEvents.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
+          {filteredEvents.map((event) => (
             <Card key={event.id} className="flex flex-col">
               <CardHeader>
-                <Badge className="w-fit capitalize" variant={event.status === 'ongoing' ? 'default' : 'outline'}>{event.status}</Badge>
+                <Badge 
+                  className={`w-fit capitalize ${event.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-100/80' : ''}`} 
+                  variant={event.status === 'ongoing' ? 'default' : 'outline'}
+                >
+                  {event.status}
+                </Badge>
                 <CardTitle className="pt-2">{event.name}</CardTitle>
                 <CardDescription>{event.description}</CardDescription>
               </CardHeader>

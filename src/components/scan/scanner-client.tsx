@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, QrCode, WifiOff, Wifi, User as UserIcon } from 'lucide-react';
+import { CheckCircle, XCircle, QrCode, WifiOff, Wifi, User as UserIcon, Home, LogOut } from 'lucide-react';
 
 interface ScannerClientProps {
   event: Event;
@@ -23,6 +23,16 @@ export function ScannerClient({ event }: ScannerClientProps) {
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
   const [scannedId, setScannedId] = useState('');
   const { toast } = useToast();
+
+  const handleLogout = () => {
+    localStorage.removeItem('scanunion_user');
+    localStorage.removeItem('scanunion_admin');
+    window.location.href = '/login';
+  };
+
+  const handleHome = () => {
+    window.location.href = '/scan';
+  };
 
   useEffect(() => {
     // Get user from local storage
@@ -98,9 +108,21 @@ export function ScannerClient({ event }: ScannerClientProps) {
             <UserIcon className="w-4 h-4" />
             <span>{user?.name || 'Scanner'}</span>
         </div>
-        <div className={`flex items-center gap-2 text-sm font-semibold ${isOnline ? 'text-accent' : 'text-destructive'}`}>
-            {isOnline ? <Wifi className="w-4 h-4"/> : <WifiOff className="w-4 h-4"/>}
-            <span>{isOnline ? 'Online' : 'Offline Mode'}</span>
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-2 text-sm font-semibold ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+              {isOnline ? <Wifi className="w-4 h-4"/> : <WifiOff className="w-4 h-4"/>}
+              <span>{isOnline ? 'Online' : 'Offline Mode'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleHome} className="gap-1">
+              <Home className="w-4 h-4" />
+              Home
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1">
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
       <Card>
@@ -109,31 +131,34 @@ export function ScannerClient({ event }: ScannerClientProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4 text-center">
-            <div className="rounded-lg border p-4">
-              <p className="text-sm font-medium text-muted-foreground">Your Scans</p>
-              <p className="text-4xl font-bold">{personalScanCount}</p>
+            <div className="rounded-lg border p-4 bg-card">
+              <p className="text-sm font-medium text-foreground">Your Scans</p>
+              <p className="text-4xl font-bold text-primary">{personalScanCount}</p>
             </div>
-            <div className="rounded-lg border p-4">
-              <p className="text-sm font-medium text-muted-foreground">Event Total</p>
-              <p className="text-4xl font-bold">1,253</p>
+            <div className="rounded-lg border p-4 bg-card">
+              <p className="text-sm font-medium text-foreground">Event Total</p>
+              <p className="text-4xl font-bold text-primary">1,253</p>
             </div>
           </div>
           
           <div className="relative h-48 flex items-center justify-center overflow-hidden">
             <AnimatePresence>
-            {scanStatus !== 'idle' && (
-                <motion.div
-                    key={scanStatus}
-                    initial={{ opacity: 0, y: 50, scale: 0.5 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -50, scale: 0.5, transition: { duration: 0.3 } }}
-                    className={`text-center space-y-2 ${statusInfo[scanStatus].color}`}
-                >
-                    <statusInfo[scanStatus].icon className="w-20 h-20 mx-auto" />
-                    <p className="text-xl font-semibold">{statusInfo[scanStatus].message}</p>
-                    <p className="font-mono text-sm">{scannedId}</p>
-                </motion.div>
-            )}
+            {scanStatus !== 'idle' && (() => {
+                const StatusIcon = statusInfo[scanStatus].icon;
+                return (
+                    <motion.div
+                        key={scanStatus}
+                        initial={{ opacity: 0, y: 50, scale: 0.5 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -50, scale: 0.5, transition: { duration: 0.3 } }}
+                        className={`text-center space-y-2 ${statusInfo[scanStatus].color}`}
+                    >
+                        <StatusIcon className="w-20 h-20 mx-auto" />
+                        <p className="text-xl font-semibold">{statusInfo[scanStatus].message}</p>
+                        <p className="font-mono text-sm">{scannedId}</p>
+                    </motion.div>
+                );
+            })()}
             </AnimatePresence>
           </div>
 

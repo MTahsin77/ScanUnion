@@ -1,9 +1,30 @@
 import { EventTilesClient } from '@/components/scan/event-tiles-client';
-import { MOCK_EVENTS } from '@/lib/mock-data';
 
-export default function SelectEventPage() {
-  // Filter for events that can be scanned
-  const availableEvents = MOCK_EVENTS.filter(e => e.scanningEnabled && (e.status === 'ongoing' || e.status === 'upcoming'));
-  
-  return <EventTilesClient events={availableEvents} />;
+import { prisma } from '@/lib/database';
+
+async function getScannableEvents() {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        scanningEnabled: true
+      },
+      include: {
+        eventUsers: {
+          include: {
+            user: true
+          }
+        }
+      },
+      orderBy: { date: 'desc' }
+    });
+    return events;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
+}
+
+export default async function SelectEventPage() {
+  const scannableEvents = await getScannableEvents();
+  return <EventTilesClient events={scannableEvents} />;
 }

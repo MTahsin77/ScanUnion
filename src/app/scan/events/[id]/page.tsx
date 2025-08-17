@@ -1,5 +1,5 @@
 import { ScannerClient } from '@/components/scan/scanner-client';
-import { getMockEventById } from '@/lib/mock-data';
+import { prisma } from '@/lib/database';
 import type { Event } from '@/lib/types';
 import { notFound } from 'next/navigation';
 
@@ -9,8 +9,10 @@ interface ScanEventPageProps {
   };
 }
 
-export default function ScanEventPage({ params }: ScanEventPageProps) {
-  const event = getMockEventById(params.id) as Event | undefined;
+export default async function ScanEventPage({ params }: ScanEventPageProps) {
+  const event = await prisma.event.findUnique({
+    where: { id: params.id }
+  });
 
   if (!event) {
     notFound();

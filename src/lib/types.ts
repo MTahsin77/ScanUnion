@@ -3,6 +3,9 @@ export interface User {
   name: string;
   pin: string;
   enabled: boolean;
+  role?: 'admin' | 'user';
+  isFirstLogin?: boolean;
+  tempPassword?: string;
 }
 
 export interface Event {
@@ -14,6 +17,8 @@ export interface Event {
   description?: string;
   scanningEnabled: boolean;
   status: 'upcoming' | 'ongoing' | 'completed';
+  assignedUsers?: string[]; // Array of user IDs who can scan for this event
+  userLocations?: { [userId: string]: string | undefined }; // Optional locations for each assigned user
 }
 
 export interface ScanLog {
